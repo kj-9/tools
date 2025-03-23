@@ -62,6 +62,15 @@
             background-color: #f8f8f8;
             border-radius: 4px;
         }
+        .info-box {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+        }
+        .emoji {
+            font-size: 1.5em;
+        }
     </style>
 </head>
 <body>
@@ -72,6 +81,15 @@
         <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
         <button onclick="analyzeText()">Analyze Text</button>
         
+        <div class="info-box">
+            <p><strong>What's shown:</strong></p>
+            <ul>
+                <li><strong>UTF-8 Bytes:</strong> Standard encoding used for text on the web (1-4 bytes per character)</li>
+                <li><strong>Raw Bytes:</strong> How JavaScript stores the character internally (2 bytes for BMP characters, 4 bytes for others)</li>
+                <li><strong>Note:</strong> Emoji and characters outside the Basic Multilingual Plane are properly handled as single characters</li>
+            </ul>
+        </div>
+        
         <div class="summary" id="summary"></div>
         
         <table id="resultTable">
@@ -80,7 +98,8 @@
                     <th>Character</th>
                     <th>Unicode Code Point</th>
                     <th>Bytes in UTF-8</th>
-                    <th>Byte Representation</th>
+                    <th>Raw Bytes (JS)</th>
+                    <th>Byte Representation (UTF-8)</th>
                 </tr>
             </thead>
             <tbody id="resultBody">
@@ -103,38 +122,68 @@
                 return;
             }
             
-            let totalBytes = 0;
+            let totalUtf8Bytes = 0;
+            let totalRawBytes = 0;
             let charCounts = {};
+            let actualCharCount = 0;
             
-            // Process each character
+            // Process each code point properly (handling surrogate pairs)
             for (let i = 0; i < text.length; i++) {
-                const char = text[i];
+                let codePoint;
+                let char;
                 
-                // Get code point
-                const codePoint = char.codePointAt(0);
-                
-                // Count bytes in UTF-8
-                let byteCount = 0;
-                if (codePoint <= 0x7F) {
-                    byteCount = 1;
-                } else if (codePoint <= 0x7FF) {
-                    byteCount = 2;
-                } else if (codePoint <= 0xFFFF) {
-                    byteCount = 3;
+                // Check if this is a high surrogate
+                if (
+                    i < text.length - 1 && 
+                    text.charCodeAt(i) >= 0xD800 && 
+                    text.charCodeAt(i) <= 0xDBFF &&
+                    text.charCodeAt(i + 1) >= 0xDC00 && 
+                    text.charCodeAt(i + 1) <= 0xDFFF
+                ) {
+                    // This is a surrogate pair - a single character
+                    codePoint = (text.charCodeAt(i) - 0xD800) * 0x400 + 
+                                (text.charCodeAt(i + 1) - 0xDC00) + 0x10000;
+                    char = text.substring(i, i + 2);
+                    i++; // Skip the low surrogate on next iteration
                 } else {
-                    byteCount = 4;
+                    // Regular character
+                    codePoint = text.codePointAt(i);
+                    char = text.charAt(i);
                 }
                 
-                totalBytes += byteCount;
+                actualCharCount++;
                 
-                // Calculate byte representation
+                // Count bytes in UTF-8
+                let utf8ByteCount = 0;
+                if (codePoint <= 0x7F) {
+                    utf8ByteCount = 1;
+                } else if (codePoint <= 0x7FF) {
+                    utf8ByteCount = 2;
+                } else if (codePoint <= 0xFFFF) {
+                    utf8ByteCount = 3;
+                } else {
+                    utf8ByteCount = 4;
+                }
+                
+                // Calculate raw bytes in JavaScript (UTF-16)
+                let rawByteCount = 0;
+                if (codePoint <= 0xFFFF) {
+                    rawByteCount = 2; // BMP characters use 2 bytes
+                } else {
+                    rawByteCount = 4; // Supplementary characters use 4 bytes (2 surrogates)
+                }
+                
+                totalUtf8Bytes += utf8ByteCount;
+                totalRawBytes += rawByteCount;
+                
+                // Calculate byte representation in UTF-8
                 let byteRep = [];
-                if (byteCount === 1) {
+                if (utf8ByteCount === 1) {
                     byteRep.push(codePoint.toString(16).padStart(2, '0'));
-                } else if (byteCount === 2) {
+                } else if (utf8ByteCount === 2) {
                     byteRep.push(((codePoint >> 6) | 0xC0).toString(16).padStart(2, '0'));
                     byteRep.push(((codePoint & 0x3F) | 0x80).toString(16).padStart(2, '0'));
-                } else if (byteCount === 3) {
+                } else if (utf8ByteCount === 3) {
                     byteRep.push(((codePoint >> 12) | 0xE0).toString(16).padStart(2, '0'));
                     byteRep.push((((codePoint >> 6) & 0x3F) | 0x80).toString(16).padStart(2, '0'));
                     byteRep.push(((codePoint & 0x3F) | 0x80).toString(16).padStart(2, '0'));
@@ -146,67 +195,105 @@
                 }
                 
                 // Track character counts for summary
-                if (!charCounts[char]) {
-                    charCounts[char] = {
+                const displayChar = getDisplayChar(char);
+                if (!charCounts[displayChar]) {
+                    charCounts[displayChar] = {
                         count: 0,
-                        bytes: byteCount
+                        utf8Bytes: utf8ByteCount,
+                        rawBytes: rawByteCount
                     };
                 }
-                charCounts[char].count++;
+                charCounts[displayChar].count++;
                 
                 // Create table row
                 const row = document.createElement('tr');
                 
                 const charCell = document.createElement('td');
-                // Handle special characters for display
-                if (char === ' ') {
-                    charCell.textContent = '(space)';
-                } else if (char === '\n') {
-                    charCell.textContent = '(newline)';
-                } else if (char === '\t') {
-                    charCell.textContent = '(tab)';
-                } else {
-                    charCell.textContent = char;
+                if (isEmoji(char)) {
+                    charCell.classList.add('emoji');
                 }
+                charCell.textContent = displayChar;
                 
                 const codePointCell = document.createElement('td');
                 codePointCell.textContent = 'U+' + codePoint.toString(16).toUpperCase().padStart(4, '0');
                 
-                const byteCountCell = document.createElement('td');
-                byteCountCell.textContent = byteCount;
+                const utf8ByteCountCell = document.createElement('td');
+                utf8ByteCountCell.textContent = utf8ByteCount;
+                
+                const rawByteCountCell = document.createElement('td');
+                rawByteCountCell.textContent = rawByteCount;
                 
                 const byteRepCell = document.createElement('td');
                 byteRepCell.textContent = byteRep.map(b => '0x' + b.toUpperCase()).join(' ');
                 
                 row.appendChild(charCell);
                 row.appendChild(codePointCell);
-                row.appendChild(byteCountCell);
+                row.appendChild(utf8ByteCountCell);
+                row.appendChild(rawByteCountCell);
                 row.appendChild(byteRepCell);
                 
                 resultBody.appendChild(row);
             }
             
             // Create summary
-            let summaryHTML = `<p><strong>Total characters:</strong> ${text.length}</p>`;
-            summaryHTML += `<p><strong>Total bytes:</strong> ${totalBytes}</p>`;
+            let summaryHTML = `<p><strong>Total characters:</strong> ${actualCharCount} (JavaScript reported: ${text.length})</p>`;
+            summaryHTML += `<p><strong>Total UTF-8 bytes:</strong> ${totalUtf8Bytes}</p>`;
+            summaryHTML += `<p><strong>Total raw bytes (UTF-16):</strong> ${totalRawBytes}</p>`;
             
             // Group characters by byte count
-            let byteCounts = {};
+            let utf8ByteCounts = {};
+            let rawByteCounts = {};
+            
             for (let char in charCounts) {
-                const bytes = charCounts[char].bytes;
-                if (!byteCounts[bytes]) {
-                    byteCounts[bytes] = 0;
+                const utf8Bytes = charCounts[char].utf8Bytes;
+                const rawBytes = charCounts[char].rawBytes;
+                const count = charCounts[char].count;
+                
+                if (!utf8ByteCounts[utf8Bytes]) {
+                    utf8ByteCounts[utf8Bytes] = 0;
                 }
-                byteCounts[bytes] += charCounts[char].count;
+                utf8ByteCounts[utf8Bytes] += count;
+                
+                if (!rawByteCounts[rawBytes]) {
+                    rawByteCounts[rawBytes] = 0;
+                }
+                rawByteCounts[rawBytes] += count;
             }
             
-            summaryHTML += '<p><strong>Character distribution:</strong></p><ul>';
-            for (let byteSize in byteCounts) {
-                summaryHTML += `<li>${byteSize}-byte characters: ${byteCounts[byteSize]} (${Math.round(byteCounts[byteSize] / text.length * 100)}%)</li>`;
+            summaryHTML += '<p><strong>UTF-8 character distribution:</strong></p><ul>';
+            for (let byteSize in utf8ByteCounts) {
+                summaryHTML += `<li>${byteSize}-byte characters: ${utf8ByteCounts[byteSize]} (${Math.round(utf8ByteCounts[byteSize] / actualCharCount * 100)}%)</li>`;
+            }
+            summaryHTML += '</ul>';
+            
+            summaryHTML += '<p><strong>Raw byte (UTF-16) character distribution:</strong></p><ul>';
+            for (let byteSize in rawByteCounts) {
+                summaryHTML += `<li>${byteSize}-byte characters: ${rawByteCounts[byteSize]} (${Math.round(rawByteCounts[byteSize] / actualCharCount * 100)}%)</li>`;
             }
             summaryHTML += '</ul>';
             
             summaryDiv.innerHTML = summaryHTML;
+        }
+        
+        function getDisplayChar(char) {
+            // Handle special characters for display
+            if (char === ' ') {
+                return '(space)';
+            } else if (char === '\n') {
+                return '(newline)';
+            } else if (char === '\t') {
+                return '(tab)';
+            } else if (char === '\r') {
+                return '(carriage return)';
+            } else {
+                return char;
+            }
+        }
+        
+        function isEmoji(str) {
+            // Simple check for characters likely to be emoji
+            const codePoint = str.codePointAt(0);
+            return codePoint > 0x1F000;
         }
     </script>
 </body>
