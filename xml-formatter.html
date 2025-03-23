@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XML Formatter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .panel {
+      background-color: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .textarea-container {
+      position: relative;
+      width: 100%;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 250px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    
+    .textarea-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .options-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .option-group {
+      margin-bottom: 15px;
+    }
+    
+    .option-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #45a049;
+    }
+    
+    .btn-secondary {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .btn-copy {
+      position: absolute;
+      top: 45px;
+      right: 10px;
+      padding: 5px 10px;
+      font-size: 12px;
+      background-color: rgba(255, 255, 255, 0.8);
+      border: 1px solid #ddd;
+    }
+    
+    select, input[type="number"] {
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .line-numbers {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      width: 30px;
+      height: calc(100% - 20px);
+      overflow: hidden;
+      background-color: #f0f0f0;
+      border-right: 1px solid #ddd;
+      padding: 0 5px;
+      text-align: right;
+      color: #777;
+      font-family: monospace;
+      font-size: 14px;
+      user-select: none;
+      pointer-events: none;
+      line-height: 1.5;
+    }
+    
+    .with-line-numbers {
+      padding-left: 45px;
+    }
+    
+    .status {
+      margin-top: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .status.success {
+      background-color: #e8f5e9;
+      color: #1b5e20;
+      display: block;
+    }
+    
+    .status.error {
+      background-color: #ffebee;
+      color: #b71c1c;
+      display: block;
+    }
+    
+    @media (min-width: 768px) {
+      .editor-container {
+        display: flex;
+        gap: 20px;
+      }
+      
+      .input-panel, .output-panel {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>XML Formatter</h1>
+  
+  <div class="container">
+    <div class="panel">
+      <div class="textarea-header">
+        <h2>Formatting Options</h2>
+      </div>
+      
+      <div class="options-panel">
+        <div class="option-group">
+          <div class="option-title">Indentation</div>
+          <select id="indentType">
+            <option value="spaces">Spaces</option>
+            <option value="tabs">Tabs</option>
+          </select>
+          <input type="number" id="indentSize" min="1" max="8" value="2" style="width: 50px;">
+        </div>
+        
+        <div class="option-group">
+          <div class="option-title">New Lines</div>
+          <select id="newlineStyle">
+            <option value="lf">LF (Unix)</option>
+            <option value="crlf">CRLF (Windows)</option>
+          </select>
+        </div>
+        
+        <div class="option-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="removeComments">
+            <label for="removeComments">Remove Comments</label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="collapseEmpty">
+            <label for="collapseEmpty">Collapse Empty Elements</label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="sortAttributes">
+            <label for="sortAttributes">Sort Attributes</label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="removeWhitespace" checked>
+            <label for="removeWhitespace">Remove Text Whitespace</label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="showLineNumbers">
+            <label for="showLineNumbers">Show Line Numbers</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="editor-container">
+      <div class="panel input-panel">
+        <div class="textarea-header">
+          <h2>Input XML</h2>
+          <button class="btn btn-secondary" id="loadSample">Load Sample</button>
+        </div>
+        
+        <div class="textarea-container">
+          <textarea id="xmlInput" placeholder="Paste your XML here..."></textarea>
+          <button class="btn btn-secondary btn-copy" id="clearInput">Clear</button>
+        </div>
+        
+        <div class="controls" style="margin-top: 10px;">
+          <button class="btn btn-primary" id="formatBtn">Format XML</button>
+          <button class="btn btn-secondary" id="minifyBtn">Minify XML</button>
+        </div>
+      </div>
+      
+      <div class="panel output-panel">
+        <div class="textarea-header">
+          <h2>Formatted XML</h2>
+          <div id="status" class="status"></div>
+        </div>
+        
+        <div class="textarea-container">
+          <div id="lineNumbers" class="line-numbers"></div>
+          <textarea id="xmlOutput" readonly></textarea>
+          <button class="btn btn-secondary btn-copy" id="copyOutput">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get elements
+      const xmlInput = document.getElementById('xmlInput');
+      const xmlOutput = document.getElementById('xmlOutput');
+      const formatBtn = document.getElementById('formatBtn');
+      const minifyBtn = document.getElementById('minifyBtn');
+      const copyBtn = document.getElementById('copyOutput');
+      const clearBtn = document.getElementById('clearInput');
+      const loadSampleBtn = document.getElementById('loadSample');
+      const statusDiv = document.getElementById('status');
+      const lineNumbersDiv = document.getElementById('lineNumbers');
+      
+      // Options elements
+      const indentType = document.getElementById('indentType');
+      const indentSize = document.getElementById('indentSize');
+      const newlineStyle = document.getElementById('newlineStyle');
+      const removeComments = document.getElementById('removeComments');
+      const collapseEmpty = document.getElementById('collapseEmpty');
+      const sortAttributes = document.getElementById('sortAttributes');
+      const removeWhitespace = document.getElementById('removeWhitespace');
+      const showLineNumbers = document.getElementById('showLineNumbers');
+      
+      // Format XML function
+      function formatXML(xml, options) {
+        // Remove whitespace between tags if enabled
+        if (options.removeWhitespace) {
+          xml = xml.replace(/>\s+</g, '><');
+        }
+        
+        // Remove comments if enabled
+        if (options.removeComments) {
+          xml = xml.replace(/<!--[\s\S]*?-->/g, '');
+        }
+        
+        // Parse XML with a simple parser (this is a simple version)
+        // For production, you'd want to use a more robust XML parser
+        
+        // For this demo, we'll use a simple approach
+        let formatted = '';
+        let indent = '';
+        
+        // Set the indentation character and newline style
+        const tab = options.indentType === 'tabs' ? '\t' : ' '.repeat(options.indentSize);
+        const newline = options.newlineStyle === 'crlf' ? '\r\n' : '\n';
+        
+        // Process character by character
+        let inTag = false;
+        let inContent = false;
+        let inComment = false;
+        let currentTag = '';
+        let isClosingTag = false;
+        let isSelfClosingTag = false;
+        
+        for (let i = 0; i < xml.length; i++) {
+          const char = xml[i];
+          const nextChar = xml[i + 1] || '';
+          
+          // Handle comments
+          if (char === '<' && nextChar === '!' && xml.substr(i, 4) === '<!--') {
+            inComment = true;
+            formatted += newline + indent + '<!--';
+            i += 3;
+            continue;
+          }
+          
+          if (inComment) {
+            formatted += char;
+            if (char === '>' && xml.substr(i - 2, 3) === '-->') {
+              inComment = false;
+            }
+            continue;
+          }
+          
+          // Handle tag opening
+          if (char === '<' && !inTag) {
+            inTag = true;
+            inContent = false;
+            currentTag = '';
+            isClosingTag = nextChar === '/';
+            
+            if (isClosingTag) {
+              // Decrease indent for closing tags
+              indent = indent.slice(0, -tab.length);
+            }
+            
+            formatted += newline + indent + '<';
+            continue;
+          }
+          
+          // Handle tag closing
+          if (char === '>' && inTag) {
+            inTag = false;
+            inContent = true;
+            
+            // Check if it's a self-closing tag
+            if (xml[i - 1] === '/') {
+              isSelfClosingTag = true;
+            } else if (!isClosingTag && !isSelfClosingTag) {
+              // Increase indent for opening tags that aren't self-closing
+              indent += tab;
+            }
+            
+            formatted += '>';
+            
+            // Reset flags
+            isClosingTag = false;
+            isSelfClosingTag = false;
+            continue;
+          }
+          
+          // Inside a tag, just add the character
+          if (inTag) {
+            formatted += char;
+            currentTag += char;
+            continue;
+          }
+          
+          // In content, add the character
+          if (inContent) {
+            // Skip whitespace at the beginning of content if removeWhitespace is true
+            if (options.removeWhitespace && char.trim() === '' && formatted.endsWith('>')) {
+              continue;
+            }
+            
+            formatted += char;
+          }
+        }
+        
+        // Process options for empty elements
+        if (options.collapseEmpty) {
+          formatted = formatted.replace(/<([^>]*)><\/\1>/g, '<$1 />');
+        }
+        
+        // Remove the first newline if it exists
+        if (formatted.startsWith(newline)) {
+          formatted = formatted.substring(newline.length);
+        }
+        
+        return formatted;
+      }
+      
+      // Minify XML function
+      function minifyXML(xml, options) {
+        // Remove comments if enabled
+        if (options.removeComments) {
+          xml = xml.replace(/<!--[\s\S]*?-->/g, '');
+        }
+        
+        // Remove whitespace between tags
+        xml = xml.replace(/>\s+</g, '><');
+        
+        // Remove whitespace around equals signs in attributes
+        xml = xml.replace(/\s*=\s*/g, '=');
+        
+        // Remove whitespace at the beginning and end of tags
+        xml = xml.replace(/<\s+/g, '<').replace(/\s+>/g, '>');
+        
+        // Collapse empty elements if enabled
+        if (options.collapseEmpty) {
+          xml = xml.replace(/<([^>]*)><\/\1>/g, '<$1 />');
+        }
+        
+        return xml;
+      }
+      
+      // Get current options
+      function getOptions() {
+        return {
+          indentType: indentType.value,
+          indentSize: parseInt(indentSize.value, 10),
+          newlineStyle: newlineStyle.value,
+          removeComments: removeComments.checked,
+          collapseEmpty: collapseEmpty.checked,
+          sortAttributes: sortAttributes.checked,
+          removeWhitespace: removeWhitespace.checked
+        };
+      }
+      
+      // Show status message
+      function showStatus(message, isError = false) {
+        statusDiv.textContent = message;
+        statusDiv.className = isError ? 'status error' : 'status success';
+        
+        // Hide after 5 seconds
+        setTimeout(() => {
+          statusDiv.className = 'status';
+        }, 5000);
+      }
+      
+      // Update line numbers
+      function updateLineNumbers() {
+        if (!showLineNumbers.checked) {
+          lineNumbersDiv.style.display = 'none';
+          xmlOutput.classList.remove('with-line-numbers');
+          return;
+        }
+        
+        lineNumbersDiv.style.display = 'block';
+        xmlOutput.classList.add('with-line-numbers');
+        
+        const lines = xmlOutput.value.split('\n');
+        let numbersHtml = '';
+        
+        for (let i = 1; i <= lines.length; i++) {
+          numbersHtml += `${i}<br>`;
+        }
+        
+        lineNumbersDiv.innerHTML = numbersHtml;
+      }
+      
+      // Event Listeners
+      formatBtn.addEventListener('click', function() {
+        try {
+          const options = getOptions();
+          const formatted = formatXML(xmlInput.value, options);
+          xmlOutput.value = formatted;
+          showStatus('XML formatted successfully!');
+          updateLineNumbers();
+        } catch (error) {
+          showStatus(`Error formatting XML: ${error.message}`, true);
+        }
+      });
+      
+      minifyBtn.addEventListener('click', function() {
+        try {
+          const options = getOptions();
+          const minified = minifyXML(xmlInput.value, options);
+          xmlOutput.value = minified;
+          showStatus('XML minified successfully!');
+          updateLineNumbers();
+        } catch (error) {
+          showStatus(`Error minifying XML: ${error.message}`, true);
+        }
+      });
+      
+      copyBtn.addEventListener('click', function() {
+        xmlOutput.select();
+        document.execCommand('copy');
+        showStatus('Copied to clipboard!');
+      });
+      
+      clearBtn.addEventListener('click', function() {
+        xmlInput.value = '';
+        xmlInput.focus();
+      });
+      
+      loadSampleBtn.addEventListener('click', function() {
+        xmlInput.value = `<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <person id="1">
+    <name>John Doe</name>
+    <age>30</age>
+    <address>
+      <street>123 Main St</street>
+      <city>Anytown</city>
+      <country>USA</country>
+    </address>
+    <!-- This is a comment about John -->
+  </person>
+  <person id="2">
+    <name>Jane Smith</name>
+    <age>25</age>
+    <address>
+      <street>456 Oak Ave</street>
+      <city>Somewhere</city>
+      <country>Canada</country>
+    </address>
+  </person>
+  <settings>
+    <darkMode enabled="true" />
+    <notifications enabled="false" />
+  </settings>
+</root>`;
+      });
+      
+      showLineNumbers.addEventListener('change', updateLineNumbers);
+      
+      // Initialize line numbers
+      updateLineNumbers();
+    });
+  </script>
+</body>
+</html>
