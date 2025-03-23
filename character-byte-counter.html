@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Byte Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Character Byte Counter</h1>
+    
+    <div class="container">
+        <p>Enter text below to see how many bytes each character takes up:</p>
+        <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
+        <button onclick="analyzeText()">Analyze Text</button>
+        
+        <div class="summary" id="summary"></div>
+        
+        <table id="resultTable">
+            <thead>
+                <tr>
+                    <th>Character</th>
+                    <th>Unicode Code Point</th>
+                    <th>Bytes in UTF-8</th>
+                    <th>Byte Representation</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+                <!-- Results will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function analyzeText() {
+            const text = document.getElementById('inputText').value;
+            const resultBody = document.getElementById('resultBody');
+            const summaryDiv = document.getElementById('summary');
+            
+            // Clear previous results
+            resultBody.innerHTML = '';
+            
+            if (!text) {
+                summaryDiv.innerHTML = '<p>Please enter some text to analyze.</p>';
+                return;
+            }
+            
+            let totalBytes = 0;
+            let charCounts = {};
+            
+            // Process each character
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                
+                // Get code point
+                const codePoint = char.codePointAt(0);
+                
+                // Count bytes in UTF-8
+                let byteCount = 0;
+                if (codePoint <= 0x7F) {
+                    byteCount = 1;
+                } else if (codePoint <= 0x7FF) {
+                    byteCount = 2;
+                } else if (codePoint <= 0xFFFF) {
+                    byteCount = 3;
+                } else {
+                    byteCount = 4;
+                }
+                
+                totalBytes += byteCount;
+                
+                // Calculate byte representation
+                let byteRep = [];
+                if (byteCount === 1) {
+                    byteRep.push(codePoint.toString(16).padStart(2, '0'));
+                } else if (byteCount === 2) {
+                    byteRep.push(((codePoint >> 6) | 0xC0).toString(16).padStart(2, '0'));
+                    byteRep.push(((codePoint & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                } else if (byteCount === 3) {
+                    byteRep.push(((codePoint >> 12) | 0xE0).toString(16).padStart(2, '0'));
+                    byteRep.push((((codePoint >> 6) & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                    byteRep.push(((codePoint & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                } else {
+                    byteRep.push(((codePoint >> 18) | 0xF0).toString(16).padStart(2, '0'));
+                    byteRep.push((((codePoint >> 12) & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                    byteRep.push((((codePoint >> 6) & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                    byteRep.push(((codePoint & 0x3F) | 0x80).toString(16).padStart(2, '0'));
+                }
+                
+                // Track character counts for summary
+                if (!charCounts[char]) {
+                    charCounts[char] = {
+                        count: 0,
+                        bytes: byteCount
+                    };
+                }
+                charCounts[char].count++;
+                
+                // Create table row
+                const row = document.createElement('tr');
+                
+                const charCell = document.createElement('td');
+                // Handle special characters for display
+                if (char === ' ') {
+                    charCell.textContent = '(space)';
+                } else if (char === '\n') {
+                    charCell.textContent = '(newline)';
+                } else if (char === '\t') {
+                    charCell.textContent = '(tab)';
+                } else {
+                    charCell.textContent = char;
+                }
+                
+                const codePointCell = document.createElement('td');
+                codePointCell.textContent = 'U+' + codePoint.toString(16).toUpperCase().padStart(4, '0');
+                
+                const byteCountCell = document.createElement('td');
+                byteCountCell.textContent = byteCount;
+                
+                const byteRepCell = document.createElement('td');
+                byteRepCell.textContent = byteRep.map(b => '0x' + b.toUpperCase()).join(' ');
+                
+                row.appendChild(charCell);
+                row.appendChild(codePointCell);
+                row.appendChild(byteCountCell);
+                row.appendChild(byteRepCell);
+                
+                resultBody.appendChild(row);
+            }
+            
+            // Create summary
+            let summaryHTML = `<p><strong>Total characters:</strong> ${text.length}</p>`;
+            summaryHTML += `<p><strong>Total bytes:</strong> ${totalBytes}</p>`;
+            
+            // Group characters by byte count
+            let byteCounts = {};
+            for (let char in charCounts) {
+                const bytes = charCounts[char].bytes;
+                if (!byteCounts[bytes]) {
+                    byteCounts[bytes] = 0;
+                }
+                byteCounts[bytes] += charCounts[char].count;
+            }
+            
+            summaryHTML += '<p><strong>Character distribution:</strong></p><ul>';
+            for (let byteSize in byteCounts) {
+                summaryHTML += `<li>${byteSize}-byte characters: ${byteCounts[byteSize]} (${Math.round(byteCounts[byteSize] / text.length * 100)}%)</li>`;
+            }
+            summaryHTML += '</ul>';
+            
+            summaryDiv.innerHTML = summaryHTML;
+        }
+    </script>
+</body>
+</html>
