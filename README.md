@@ -3,3 +3,4 @@
 [source repo](https://arc.net/l/quote/iaumvsvo)
 
 - [XML Formatter](xml-formatter.html)
+- [Character-Byte Counter](character-byte-counter.html)
