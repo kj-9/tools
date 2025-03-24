@@ -36,9 +36,20 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            margin-right: 10px;
         }
         button:hover {
             background-color: #45a049;
+        }
+        .share-button {
+            background-color: #2196F3;
+        }
+        .share-button:hover {
+            background-color: #0b7dda;
+        }
+        .button-group {
+            display: flex;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -71,6 +82,34 @@
         .emoji {
             font-size: 1.5em;
         }
+        .share-url {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+        .copy-url {
+            background-color: #607D8B;
+            margin-top: 10px;
+            display: none;
+        }
+        .copy-url:hover {
+            background-color: #455A64;
+        }
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +118,14 @@
     <div class="container">
         <p>Enter text below to see how many bytes each character takes up:</p>
         <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
-        <button onclick="analyzeText()">Analyze Text</button>
+        
+        <div class="button-group">
+            <button onclick="analyzeText()">Analyze Text</button>
+            <button class="share-button" onclick="generateShareableURL()">Generate Shareable URL</button>
+        </div>
+        
+        <input type="text" id="shareURL" class="share-url" readonly>
+        <button id="copyURLBtn" class="copy-url" onclick="copyShareURL()">Copy URL</button>
         
         <div class="info-box">
             <p><strong>What's shown:</strong></p>
@@ -108,7 +154,24 @@
         </table>
     </div>
 
+    <div id="notification" class="notification">URL copied to clipboard!</div>
+
     <script>
+        // Check for text in URL on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedText = urlParams.get('text');
+            
+            if (sharedText) {
+                // Decode and set the text
+                const decodedText = decodeURIComponent(sharedText);
+                document.getElementById('inputText').value = decodedText;
+                
+                // Analyze the text automatically
+                analyzeText();
+            }
+        });
+
         function analyzeText() {
             const text = document.getElementById('inputText').value;
             const resultBody = document.getElementById('resultBody');
@@ -273,6 +336,44 @@
             summaryHTML += '</ul>';
             
             summaryDiv.innerHTML = summaryHTML;
+        }
+        
+        function generateShareableURL() {
+            const text = document.getElementById('inputText').value;
+            
+            if (!text) {
+                alert('Please enter some text before generating a shareable URL.');
+                return;
+            }
+            
+            // Encode the text for URL
+            const encodedText = encodeURIComponent(text);
+            
+            // Create the URL with the encoded text as a query parameter
+            const shareableURL = `${window.location.origin}${window.location.pathname}?text=${encodedText}`;
+            
+            // Display the URL
+            const shareURLInput = document.getElementById('shareURL');
+            shareURLInput.value = shareableURL;
+            shareURLInput.style.display = 'block';
+            
+            // Show the copy button
+            document.getElementById('copyURLBtn').style.display = 'block';
+        }
+        
+        function copyShareURL() {
+            const shareURLInput = document.getElementById('shareURL');
+            shareURLInput.select();
+            document.execCommand('copy');
+            
+            // Show notification
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            
+            // Hide notification after 2 seconds
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 2000);
         }
         
         function getDisplayChar(char) {
