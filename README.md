@@ -4,3 +4,4 @@
 
 - [XML Formatter](xml-formatter.html)
 - [Character-Byte Counter](character-byte-counter.html)
+- [RSS Reader](rss-reader.html)
