@@ -1,14 +1,12 @@
 # [tools](https://kj-9.github.io/tools/)
 
-[source repo](https://github.com/kj-9/tools)
+A small collection of browser-based utilities.
 
-- [XML Formatter](xml-formatter.html)
-- [Character-Byte Counter](character-byte-counter.html)
-- [RSS Reader](rss-reader.html)
-- [セルフ・コンパッション尺度（日本語版）](japanese-scs.html)
+The tool list is maintained on the published site.
 
-## Python
+- [Published site](https://kj-9.github.io/tools/)
+- [Source repository](https://github.com/kj-9/tools)
 
-- `python/egress-ip.py`
-  - 概要: DNS と HTTPS の疎通確認を行い、外向き（egress）の IP を表示します。
-  - 実行例: `uv run https://kj-9.github.io/tools/python/egress-ip.py`
+## Scripts
+
+- `python/egress-ip.py`: Checks DNS and HTTPS connectivity, then prints the egress IP address.

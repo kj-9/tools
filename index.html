@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tools</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --text: #1f2933;
+      --muted: #667085;
+      --border: #d9dee7;
+      --primary: #2563eb;
+      --primary-soft: #eaf1ff;
+      --shadow: 0 10px 30px rgba(31, 41, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 44px 0 56px;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(34px, 7vw, 56px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .section {
+      margin-top: 28px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .tool-link {
+      display: grid;
+      gap: 8px;
+      min-height: 118px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      transition: border-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .tool-link:hover,
+    .tool-link:focus-visible {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .tool-title {
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .tool-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .script-list {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    code {
+      display: inline-block;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      border-radius: 5px;
+      background: var(--primary-soft);
+      color: #173b7a;
+      padding: 2px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .repo-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      margin-top: 24px;
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>tools</h1>
+      <p class="lead">ブラウザで使える小さなユーティリティ集です。</p>
+    </header>
+
+    <section class="section" aria-labelledby="web-tools-title">
+      <h2 id="web-tools-title">Web tools</h2>
+      <div class="tool-grid">
+        <a class="tool-link" href="xml-formatter.html">
+          <span class="tool-title">XML Formatter</span>
+          <p class="tool-description">XMLを整形して読みやすくします。</p>
+        </a>
+        <a class="tool-link" href="character-byte-counter.html">
+          <span class="tool-title">Character-Byte Counter</span>
+          <p class="tool-description">文字ごとのバイト数と合計を確認します。</p>
+        </a>
+        <a class="tool-link" href="rss-reader.html">
+          <span class="tool-title">RSS Reader</span>
+          <p class="tool-description">RSSフィードを読み込んで記事を確認します。</p>
+        </a>
+        <a class="tool-link" href="japanese-scs.html">
+          <span class="tool-title">セルフ・コンパッション尺度（日本語版）</span>
+          <p class="tool-description">質問に回答してスコアを確認します。</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="python-title">
+      <h2 id="python-title">Python</h2>
+      <div class="script-list">
+        <a href="python/egress-ip.py"><code>python/egress-ip.py</code></a>
+        <p class="tool-description">DNSとHTTPSの疎通確認を行い、外向き（egress）のIPを表示します。</p>
+      </div>
+    </section>
+
+    <a class="repo-link" href="https://github.com/kj-9/tools">source repo</a>
+  </main>
+</body>
+</html>
