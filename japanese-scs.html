@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>セルフ・コンパッション尺度（日本語版）</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f7;
+      --surface: #ffffff;
+      --surface-soft: #f7faf9;
+      --text: #17201d;
+      --muted: #62706b;
+      --border: #dce3e0;
+      --primary: #1d8a6b;
+      --primary-dark: #11624f;
+      --accent: #496a92;
+      --score-low: #b85b62;
+      --score-mid: #b1843f;
+      --score-high: #1d8a6b;
+      --shadow: 0 14px 36px rgba(18, 32, 28, 0.07);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    a {
+      color: var(--primary-dark);
+      text-underline-offset: 3px;
+    }
+
+    .app {
+      width: min(900px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .site-header {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 3px 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(26px, 5vw, 42px);
+      letter-spacing: 0;
+      line-height: 1.16;
+    }
+
+    .lead {
+      max-width: 740px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .intro {
+      display: grid;
+      gap: 18px;
+      padding: 22px;
+    }
+
+    .scale-chips {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .chip {
+      min-height: 70px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 10px;
+    }
+
+    .chip strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--primary-dark);
+      font-size: 18px;
+    }
+
+    .chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .meta,
+    .notice {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .notice {
+      padding: 16px 18px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      padding: 9px 16px;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+    }
+
+    .btn.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .btn.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn.subtle {
+      color: var(--muted);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .progress-panel {
+      padding: 16px;
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dde4e1;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: var(--primary);
+      transition: width 0.25s ease;
+    }
+
+    .question-card {
+      margin-top: 14px;
+      padding: 22px;
+    }
+
+    .question-number {
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      margin: 0 0 20px;
+      font-size: 18px;
+      line-height: 1.75;
+    }
+
+    .rating-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .rating-btn {
+      min-height: 88px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--text);
+      cursor: pointer;
+      padding: 10px 8px;
+      text-align: center;
+      transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .rating-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .rating-btn.selected {
+      border-color: var(--primary);
+      background: #edf8f4;
+      outline: 2px solid rgba(29, 138, 107, 0.16);
+    }
+
+    .rating-btn strong {
+      display: block;
+      color: var(--primary-dark);
+      font-size: 22px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .rating-btn span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .selected-note {
+      min-height: 38px;
+      margin-top: 12px;
+      color: var(--primary-dark);
+      font-size: 13px;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .nav-row .right {
+      display: flex;
+      gap: 10px;
+    }
+
+    .overall-card {
+      padding: 22px;
+      border-left: 5px solid var(--primary);
+    }
+
+    .section-label {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .overall-score {
+      margin: 0 0 10px;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .overall-text {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .overall-bar {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8e5;
+      margin: 14px 0;
+    }
+
+    .overall-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: var(--factor-color);
+      transition: width 0.4s ease;
+    }
+
+    .share-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 16px;
+    }
+
+    .share-status {
+      min-height: 20px;
+      color: var(--primary-dark);
+      font-size: 13px;
+    }
+
+    .share-url {
+      display: none;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 9px 10px;
+    }
+
+    .share-url.visible {
+      display: block;
+    }
+
+    .factor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .factor-card {
+      overflow: hidden;
+      padding: 18px;
+      border-top: 4px solid var(--factor-color);
+    }
+
+    .factor-title {
+      margin: 0 0 6px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .factor-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .factor-score {
+      margin-top: 8px !important;
+      color: var(--text) !important;
+      font-weight: 700;
+    }
+
+    .score-bar {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8e5;
+      margin: 12px 0;
+    }
+
+    .score-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: var(--factor-color);
+      transition: width 0.4s ease;
+    }
+
+    .factor-read {
+      margin-top: 10px !important;
+      color: var(--text) !important;
+      font-size: 14px !important;
+    }
+
+    .reference {
+      margin-top: 14px;
+      padding: 16px 18px;
+    }
+
+    @media (max-width: 760px) {
+      .factor-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: min(100% - 20px, 900px);
+        padding-top: 18px;
+      }
+
+      .scale-chips,
+      .rating-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .rating-btn {
+        min-height: 58px;
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 8px;
+        align-items: center;
+        text-align: left;
+      }
+
+      .rating-btn strong {
+        margin: 0;
+        text-align: center;
+      }
+
+      .nav-row,
+      .nav-row .right {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="site-header">
+      <div class="eyebrow">Japanese Self-Compassion Scale</div>
+      <h1>セルフ・コンパッション尺度（日本語版）</h1>
+      <p class="lead">困難に遭遇したとき、自分自身に対してどのように行動しているかを全26問で振り返る簡易ツールです。</p>
+    </header>
+
+    <section id="start-screen" class="screen active">
+      <div class="panel intro">
+        <p class="lead">各項目について、あなたに最も近いものを1から5で選んでください。回答後に、全体傾向と6つの側面のバランスを表示します。</p>
+        <div class="scale-chips" id="scale-chips"></div>
+        <div class="actions">
+          <button class="btn primary" type="button" id="start-btn">開始する</button>
+        </div>
+        <p class="meta">このページは自己理解のための簡易ツールです。医療・心理臨床上の診断を行うものではありません。</p>
+        <p class="meta">
+          出典: 有光興記 (2014) セルフ・コンパッション尺度日本語版の作成と信頼性，妥当性の検討
+          <br>
+          <a href="https://www.jstage.jst.go.jp/article/jjpsy/85/1/85_50/_article/-char/ja/" target="_blank" rel="noopener noreferrer">J-STAGE 論文ページ</a>
+          /
+          <a href="https://self-compassion.org/wp-content/uploads/2018/05/JapaneseSCS.pdf" target="_blank" rel="noopener noreferrer">元尺度PDF</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="quiz-screen" class="screen">
+      <div class="panel progress-panel">
+        <div class="progress-row">
+          <span id="progress-label">0 / 26</span>
+          <span id="answered-label">回答済み 0問</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+      <div class="panel question-card">
+        <div class="question-number" id="question-number"></div>
+        <p class="question-text" id="question-text"></p>
+        <div class="rating-buttons" id="rating-buttons"></div>
+        <div class="selected-note" id="selected-note"></div>
+      </div>
+      <div class="nav-row">
+        <span></span>
+        <div class="right">
+          <button class="btn" type="button" id="prev-btn">戻る</button>
+          <button class="btn primary" type="button" id="next-btn">次へ</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="result-screen" class="screen">
+      <article class="panel overall-card">
+        <p class="section-label">全体傾向</p>
+        <p class="overall-score" id="overall-score">全体スコア 0 / 130</p>
+        <div class="overall-bar"><div class="overall-fill" id="overall-fill"></div></div>
+        <p class="overall-text">スコアが高いほど，困難な場面で自分を責めすぎず，苦しみを人間に共通する経験として受け止め，感情と適度な距離を取りやすい傾向を示します。スコアが低いほど，つらい場面で自己批判，孤独感，過剰同一性が強くなりやすい傾向を示します。</p>
+      </article>
+
+      <div class="factor-grid" id="factor-grid"></div>
+
+      <div class="panel share-panel">
+        <div class="actions">
+          <button class="btn primary" type="button" id="share-btn">結果をシェア</button>
+          <button class="btn" type="button" id="review-btn">回答を見直す</button>
+          <button class="btn" type="button" id="restart-btn">もう一度試す</button>
+        </div>
+        <div class="share-status" id="share-status"></div>
+        <input class="share-url" id="share-url" type="text" readonly aria-label="共有URL">
+      </div>
+
+      <div class="panel notice">
+        <strong>注意:</strong> このページは自己理解のための簡易ツールです。医療・心理臨床上の診断を行うものではありません。強い苦痛や生活への支障がある場合は、専門家や相談窓口に相談してください。
+      </div>
+
+      <div class="panel reference meta">
+        出典: 有光興記 (2014) セルフ・コンパッション尺度日本語版の作成と信頼性，妥当性の検討
+        <br>
+        <a href="https://www.jstage.jst.go.jp/article/jjpsy/85/1/85_50/_article/-char/ja/" target="_blank" rel="noopener noreferrer">J-STAGE 論文ページ</a>
+        /
+        <a href="https://self-compassion.org/wp-content/uploads/2018/05/JapaneseSCS.pdf" target="_blank" rel="noopener noreferrer">元尺度PDF</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      "自分自身の欠点や不十分なところについて，不満に思っているし，批判的である。",
+      "気分が落ち込んだときには，間違ったことすべてについて，くよくよと心配し，こだわる傾向にある。",
+      "自分にとって物事が悪い方向に向かっているとき，そうした困難は誰もが経験するような人生の一場面に過ぎないと考える。",
+      "自分の不十分なところについて考えると，自分以外の世界から切り離され，排除されたような気分になりがちである。",
+      "感情的な苦痛を感じているとき，自分自身にやさしくする。",
+      "自分にとって重要なことを失敗したとき，無力感で頭がいっぱいになる。",
+      "気分がどん底のときには，自分と同じような気持ちになっている人が世界には大勢いるということを思い出すようにする。",
+      "本当につらいとき，自分自身に批判的になる傾向がある。",
+      "何かで苦しい思いをしたときには，感情を適度なバランスに保つようにする。",
+      "自分自身にどこか不十分なところがあると感じると，多くの人も不十分であるという気持ちを共有していることを思い出すようにする。",
+      "自分のパーソナリティの好きでないところについては，やさしくなれないし，いらだちを感じる。",
+      "苦労を経験しているとき，必要とする程度に自分自身をいたわり，やさしくする。",
+      "気分が落ち込んだとき，多くの人がおそらく自分より幸せであるという気持ちになりがちである。",
+      "何か苦痛を感じることが起こったとき，その状況についてバランスのとれた見方をするようにする。",
+      "自分の失敗は，人間のありようの１つであると考えるようにしている。",
+      "自分自身について自分が好きでない点について考えたとき，自分自身を批判的に考えてしまう。",
+      "自分にとって大切なことを失敗したときは，偏りがないように物事をとらえるようにする。",
+      "自分が悪戦苦闘しているときに，他の人はもっと楽をしているに違いないという気持ちになりやすい。",
+      "苦しみを経験しているとき，自分自身にやさしくする。",
+      "何かで苦痛を感じているとき，感情で頭がいっぱいになってしまう。",
+      "自分が苦しんでいるとき，自分自身に少し冷たい気持ちになることがある。",
+      "気分が落ち込んでいるとき，自分の感情に関心を持ち，心を開いて対処しようとする。",
+      "自分自身の欠点と不十分なところについては，やさしい目で見るようにしている。",
+      "何か苦痛を感じることが起こったとき，その出来事を大げさに考える傾向がある。",
+      "自分にとって大切な何かに失敗したとき，自分の失敗の中でひとりぼっちでいるように感じる傾向がある。",
+      "自分のパーソナリティの好きでないところについては理解し，やさしい目で見るようにしている。"
+    ];
+
+    const scaleLabels = {
+      1: "ほとんど全くそうしない",
+      2: "あまりそうしない",
+      3: "どちらともいえない",
+      4: "よくそうする",
+      5: "ほとんどいつもそうする"
+    };
+
+    const factors = [
+      {
+        key: "selfKindness",
+        label: "自分への優しさ",
+        items: [5, 12, 19, 23, 26],
+        reversed: false,
+        description: "つらいときに、自分を責めすぎず、いたわる姿勢。",
+        low: "つらい時ほど自分への言葉が厳しくなりやすいかもしれません。",
+        middle: "状況によって、自分をいたわれる時と責めてしまう時が混在しています。",
+        high: "困難な場面でも、自分にあたたかく接しやすい傾向があります。"
+      },
+      {
+        key: "selfJudgment",
+        label: "自己批判",
+        items: [1, 8, 11, 16, 21],
+        reversed: true,
+        description: "失敗や欠点に向き合うとき，自分への批判に偏りすぎない姿勢。",
+        low: "失敗や欠点に意識が向いた時、自分を強く責めやすい状態かもしれません。",
+        middle: "自分を責めすぎない時もありますが、場面によって厳しさが出やすい傾向です。",
+        high: "自分の弱さや失敗を、過度に責めずに受け止めやすい傾向があります。"
+      },
+      {
+        key: "commonHumanity",
+        label: "共通の人間性",
+        items: [3, 7, 10, 15],
+        reversed: false,
+        description: "失敗や苦しみを「自分だけ」ではなく、人間に共通する経験として見られる感覚。",
+        low: "苦しい時に、その経験を自分だけの問題として抱え込みやすいかもしれません。",
+        middle: "苦しみを共通の経験として見られる時と、孤立して感じる時が混在しています。",
+        high: "失敗や苦しみを、人間に共通する経験として受け止めやすい傾向があります。"
+      },
+      {
+        key: "isolation",
+        label: "孤独感",
+        items: [4, 13, 18, 25],
+        reversed: true,
+        description: "苦しいときに，自分だけが切り離されている感覚へ沈み込みすぎない姿勢。",
+        low: "苦しい時に、ひとりだけ取り残されたように感じやすいかもしれません。",
+        middle: "孤立感に距離を取れる時と、のみこまれやすい時が混在しています。",
+        high: "苦しい時でも、孤立感だけにのみこまれにくい傾向があります。"
+      },
+      {
+        key: "mindfulness",
+        label: "マインドフルネス",
+        items: [9, 14, 17, 22],
+        reversed: false,
+        description: "苦痛や感情を否定せず、バランスよく眺める姿勢。",
+        low: "苦痛や感情が強い時、バランスを取り戻しにくいかもしれません。",
+        middle: "感情を眺められる時と、巻き込まれやすい時が混在しています。",
+        high: "苦痛や感情を否定せず、落ち着いて眺めやすい傾向があります。"
+      },
+      {
+        key: "overIdentification",
+        label: "過剰同一性",
+        items: [2, 6, 20, 24],
+        reversed: true,
+        description: "つらい感情に巻き込まれすぎず，適度な距離を保つ姿勢。",
+        low: "つらい感情が強い時、その感情が考え全体を占めやすいかもしれません。",
+        middle: "感情と距離を取れる時と、巻き込まれやすい時が混在しています。",
+        high: "つらい感情があっても、適度な距離を取りやすい傾向があります。"
+      }
+    ];
+
+    let answers = Array(questions.length).fill(null);
+    let currentQuestion = 0;
+    let currentResult = null;
+    let currentResultIsShared = false;
+
+    const screens = {
+      start: document.getElementById("start-screen"),
+      quiz: document.getElementById("quiz-screen"),
+      result: document.getElementById("result-screen")
+    };
+
+    function showScreen(name) {
+      Object.values(screens).forEach((screen) => screen.classList.remove("active"));
+      screens[name].classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function reverseScore(value) {
+      return 6 - value;
+    }
+
+    function answeredCount() {
+      return answers.filter((value) => value !== null).length;
+    }
+
+    function isComplete() {
+      return answeredCount() === questions.length;
+    }
+
+    function tendencyText(avg, factor) {
+      if (avg >= 4) return factor.high;
+      if (avg >= 3) return factor.middle;
+      return factor.low;
+    }
+
+    function scoreColor(avg) {
+      if (avg >= 4) return "var(--score-high)";
+      if (avg >= 3) return "var(--score-mid)";
+      return "var(--score-low)";
+    }
+
+    function calculateResult() {
+      const factorScores = factors.map((factor) => {
+        const scoredSum = factor.items.reduce((sum, item) => {
+          const raw = answers[item - 1];
+          return sum + (factor.reversed ? reverseScore(raw) : raw);
+        }, 0);
+        return {
+          ...factor,
+          scoredSum,
+          max: factor.items.length * 5,
+          average: scoredSum / factor.items.length
+        };
+      });
+      const total = factorScores.reduce((sum, factor) => sum + factor.scoredSum, 0);
+      return {
+        factorScores,
+        total,
+        totalAverage: total / questions.length
+      };
+    }
+
+    function resultFromScores(scores) {
+      const factorScores = factors.map((factor, index) => {
+        const scoredSum = scores[index + 1];
+        return {
+          ...factor,
+          scoredSum,
+          max: factor.items.length * 5,
+          average: scoredSum / factor.items.length
+        };
+      });
+      return {
+        factorScores,
+        total: scores[0],
+        totalAverage: scores[0] / questions.length
+      };
+    }
+
+    function encodeScore(result) {
+      return [
+        result.total,
+        ...result.factorScores.map((factor) => factor.scoredSum)
+      ].join("-");
+    }
+
+    function parseSharedScore() {
+      const params = new URLSearchParams(window.location.search);
+      const score = params.get("score");
+      if (!score) return null;
+
+      const values = score.split("-").map((part) => Number(part));
+      if (values.length !== 7 || values.some((value) => !Number.isInteger(value))) return null;
+
+      const ranges = [
+        [26, 130],
+        [5, 25],
+        [5, 25],
+        [4, 20],
+        [4, 20],
+        [4, 20],
+        [4, 20]
+      ];
+      const inRange = values.every((value, index) => value >= ranges[index][0] && value <= ranges[index][1]);
+      const totalMatches = values[0] === values.slice(1).reduce((sum, value) => sum + value, 0);
+      if (!inRange || !totalMatches) return null;
+
+      return resultFromScores(values);
+    }
+
+    function shareUrlFor(result) {
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
+      url.searchParams.set("score", encodeScore(result));
+      return url.toString();
+    }
+
+    function renderScaleChips() {
+      document.getElementById("scale-chips").innerHTML = Object.entries(scaleLabels).map(([value, label]) => `
+        <div class="chip">
+          <strong>${value}</strong>
+          <span>${label}</span>
+        </div>
+      `).join("");
+    }
+
+    function renderQuestion() {
+      const selected = answers[currentQuestion];
+      const count = answeredCount();
+      document.getElementById("progress-label").textContent = `質問 ${currentQuestion + 1} / ${questions.length}`;
+      document.getElementById("answered-label").textContent = `回答済み ${count}問`;
+      document.getElementById("progress-fill").style.width = `${(count / questions.length) * 100}%`;
+      document.getElementById("question-number").textContent = `質問 ${currentQuestion + 1}`;
+      document.getElementById("question-text").textContent = questions[currentQuestion];
+      document.getElementById("prev-btn").disabled = currentQuestion === 0;
+      document.getElementById("next-btn").disabled = selected === null;
+      document.getElementById("next-btn").textContent = currentQuestion === questions.length - 1 ? "結果を見る" : "次へ";
+      document.getElementById("selected-note").textContent = selected === null ? "" : `${selected}を選択: ${scaleLabels[selected]}`;
+      document.getElementById("rating-buttons").innerHTML = [1, 2, 3, 4, 5].map((value) => `
+        <button class="rating-btn ${selected === value ? "selected" : ""}" type="button" data-answer="${value}" aria-pressed="${selected === value}">
+          <strong>${value}</strong>
+          <span>${scaleLabels[value]}</span>
+        </button>
+      `).join("");
+    }
+
+    function setAnswer(value) {
+      answers[currentQuestion] = value;
+      renderQuestion();
+    }
+
+    function nextQuestion() {
+      if (answers[currentQuestion] === null) return;
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion += 1;
+        renderQuestion();
+        return;
+      }
+      if (isComplete()) {
+        showResults(calculateResult(), { shared: false });
+      }
+    }
+
+    function showResults(result, options = {}) {
+      currentResult = result;
+      currentResultIsShared = Boolean(options.shared);
+      const shared = currentResultIsShared;
+      document.getElementById("overall-score").textContent = `全体スコア ${result.total} / 130`;
+      document.getElementById("overall-fill").style.width = `${Math.round((result.total / 130) * 100)}%`;
+      document.getElementById("overall-fill").style.background = scoreColor(result.totalAverage);
+      document.getElementById("review-btn").style.display = shared ? "none" : "";
+      document.getElementById("share-status").textContent = shared ? "共有された結果を表示しています。" : "";
+      document.getElementById("share-url").classList.remove("visible");
+      document.getElementById("share-url").value = "";
+      document.getElementById("factor-grid").innerHTML = result.factorScores.map((factor) => {
+        const pct = Math.round((factor.average / 5) * 100);
+        return `
+          <article class="panel factor-card" style="--factor-color:${scoreColor(factor.average)}">
+            <h2 class="factor-title">${factor.label}</h2>
+            <p>${factor.description}</p>
+            <p class="factor-score">${factor.scoredSum} / ${factor.max}</p>
+            <div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+            <p class="factor-read">${tendencyText(factor.average, factor)}</p>
+          </article>
+        `;
+      }).join("");
+      showScreen("result");
+    }
+
+    async function shareCurrentResult() {
+      if (!currentResult) return;
+      const url = shareUrlFor(currentResult);
+      const input = document.getElementById("share-url");
+      const status = document.getElementById("share-status");
+      input.value = url;
+
+      try {
+        if (!navigator.clipboard) {
+          throw new Error("Clipboard API is unavailable");
+        }
+        await navigator.clipboard.writeText(url);
+        input.classList.remove("visible");
+        status.textContent = "共有URLをコピーしました。";
+      } catch (_) {
+        try {
+          const textarea = document.createElement("textarea");
+          textarea.value = url;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "fixed";
+          textarea.style.left = "-9999px";
+          textarea.style.top = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          textarea.setSelectionRange(0, textarea.value.length);
+          const copied = document.execCommand("copy");
+          document.body.removeChild(textarea);
+          if (!copied) throw new Error("Copy command failed");
+          input.classList.remove("visible");
+          status.textContent = "共有URLをコピーしました。";
+        } catch (_) {
+          input.classList.add("visible");
+          input.focus();
+          input.select();
+          status.textContent = "共有URLを表示しました。必要に応じてコピーしてください。";
+        }
+      }
+    }
+
+    function resetAll() {
+      answers = Array(questions.length).fill(null);
+      currentQuestion = 0;
+      currentResult = null;
+      currentResultIsShared = false;
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.hash = "";
+      history.replaceState(null, "", url.toString());
+      renderQuestion();
+      showScreen("start");
+    }
+
+    document.getElementById("start-btn").addEventListener("click", () => {
+      renderQuestion();
+      showScreen("quiz");
+    });
+    document.getElementById("prev-btn").addEventListener("click", () => {
+      currentQuestion = Math.max(0, currentQuestion - 1);
+      renderQuestion();
+    });
+    document.getElementById("next-btn").addEventListener("click", nextQuestion);
+    document.getElementById("review-btn").addEventListener("click", () => {
+      renderQuestion();
+      showScreen("quiz");
+    });
+    document.getElementById("restart-btn").addEventListener("click", resetAll);
+    document.getElementById("share-btn").addEventListener("click", shareCurrentResult);
+    document.getElementById("rating-buttons").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-answer]");
+      if (!button) return;
+      setAnswer(Number(button.dataset.answer));
+    });
+
+    renderScaleChips();
+    const sharedResult = parseSharedScore();
+    if (sharedResult) {
+      showResults(sharedResult, { shared: true });
+    }
+  </script>
+</body>
+</html>

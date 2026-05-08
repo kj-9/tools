@@ -5,6 +5,7 @@
 - [XML Formatter](xml-formatter.html)
 - [Character-Byte Counter](character-byte-counter.html)
 - [RSS Reader](rss-reader.html)
+- [セルフ・コンパッション尺度（日本語版）](japanese-scs.html)
 
 ## Python
 
