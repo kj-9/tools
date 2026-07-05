@@ -23,7 +23,7 @@ Run them from the published URL:
 
 ```sh
 uv run https://kj-9.github.io/tools/python/egress-ip.py
-uv run https://kj-9.github.io/tools/python/gitnation-subs.py --list 'https://gitnation.com/contents/five-ways-to-make-your-thinking-visible-in-engineering-collaboration'
+uv run https://kj-9.github.io/tools/python/gitnation-subs.py --help
 ```
 
 ## Maintenance
