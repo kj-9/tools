@@ -350,7 +350,7 @@
         <p class="tool-description">DNSとHTTPSの疎通確認を行い、外向き（egress）のIPを表示します。</p>
         <div class="command-row">
           <code>uv run https://kj-9.github.io/tools/python/egress-ip.py</code>
-          <button class="copy-command" type="button" data-copy-command="uv run https://kj-9.github.io/tools/python/egress-ip.py">Copy</button>
+          <button class="copy-command" type="button">Copy</button>
           <span class="copy-status" aria-live="polite"></span>
         </div>
       </div>
@@ -359,7 +359,7 @@
         <p class="tool-description">GitNation動画ページ内のVimeo埋め込みを見つけ、yt-dlpで字幕一覧の確認や字幕保存を行います。</p>
         <div class="command-row">
           <code>uv run https://kj-9.github.io/tools/python/gitnation-subs.py --help</code>
-          <button class="copy-command" type="button" data-copy-command="uv run https://kj-9.github.io/tools/python/gitnation-subs.py --list 'https://gitnation.com/contents/five-ways-to-make-your-thinking-visible-in-engineering-collaboration'">Copy</button>
+          <button class="copy-command" type="button">Copy</button>
           <span class="copy-status" aria-live="polite"></span>
         </div>
       </div>
@@ -397,10 +397,11 @@
       return fallbackCopy();
     }
 
-    document.querySelectorAll("[data-copy-command]").forEach((button) => {
+    document.querySelectorAll(".copy-command").forEach((button) => {
       button.addEventListener("click", async () => {
-        const command = button.dataset.copyCommand;
-        const status = button.parentElement.querySelector(".copy-status");
+        const row = button.closest(".command-row");
+        const command = row.querySelector("code").textContent.trim();
+        const status = row.querySelector(".copy-status");
 
         try {
           await copyText(command);
