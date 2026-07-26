@@ -13,6 +13,7 @@ The tool list is maintained on the published site.
 - [Character-Byte Counter](https://kj-9.github.io/tools/character-byte-counter.html): Shows UTF-8 byte counts and code points for each character.
 - [RSS Reader](https://kj-9.github.io/tools/rss-reader.html): Loads an RSS feed and displays articles in a browser UI.
 - [セルフ・コンパッション尺度（日本語版）](https://kj-9.github.io/tools/japanese-scs.html): A Japanese self-compassion scale questionnaire.
+- [方丈記 読み比べ](https://kj-9.github.io/tools/hojoki-reader.html): Reads Hojoki with the original text and Haruo Sato's modern Japanese translation.
 
 ## Scripts
 
