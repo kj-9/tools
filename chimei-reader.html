@@ -158,8 +158,8 @@
     .margin-note strong { display: block; margin-bottom: 0.6rem; color: var(--ink); font-size: 0.82rem; }
 
     .book-text { min-width: 0; font-size: var(--reading-size); line-height: 2.18; letter-spacing: 0.018em; transition: font-size 160ms ease; }
-    .book-text > p { margin: 0 0 1.35em; text-align: justify; text-indent: 1em; hanging-punctuation: allow-end; }
-    .book-text > p:first-of-type { text-indent: 0; }
+    .book-text > p, .reading-chunk > p { margin: 0 0 1.35em; text-align: justify; text-indent: 1em; hanging-punctuation: allow-end; }
+    .book-text > p:first-of-type, .reading-chunk > p:first-of-type { text-indent: 0; }
     .book-text h2 {
       margin: 8rem 0 3rem;
       padding: 0 0 1.2rem;
@@ -190,6 +190,65 @@
     .notes, .sho1 { color: var(--muted); font-size: 0.78em !important; }
     .book-text img { display: block; max-width: 100%; height: auto; margin: 2rem auto; mix-blend-mode: multiply; }
     [data-theme="dark"] .book-text img { filter: invert(0.85); mix-blend-mode: screen; }
+
+    [data-writing="vertical"] .reading-layout {
+      display: block;
+      width: 100%;
+      max-width: none;
+      padding: 2rem 0 8rem;
+    }
+    [data-writing="vertical"] .side-index,
+    [data-writing="vertical"] .margin-note { display: none; }
+    .reading-chunk { display: contents; }
+    [data-writing="vertical"] .book-text {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      line-height: 2.05;
+    }
+    [data-writing="vertical"] .reading-chunk {
+      display: block;
+      width: 100%;
+      height: calc(100dvh - 6.2rem);
+      min-height: 34rem;
+      padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem);
+      overflow-x: auto;
+      overflow-y: hidden;
+      border-bottom: 1px solid var(--line);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      overscroll-behavior-inline: contain;
+      scroll-behavior: smooth;
+      scrollbar-color: var(--accent) var(--paper-deep);
+    }
+    [data-writing="vertical"] .reading-chunk > p {
+      margin: 0 0 0 1.4em;
+      text-align: justify;
+    }
+    [data-writing="vertical"] .book-text h2 {
+      margin: 0 6rem 0 3.5rem;
+      padding: 0 0 0 1.2rem;
+      border-bottom: 0;
+      border-left: 1px solid var(--line);
+    }
+    [data-writing="vertical"] .book-text h2:first-child { margin-top: 0; }
+    [data-writing="vertical"] .book-text h3 {
+      margin: 0 4.5rem 0 2.8rem;
+      padding: 1rem 0 0;
+      border-top: 3px solid var(--accent);
+      border-left: 0;
+    }
+    [data-writing="vertical"] .book-text .jisage_2,
+    [data-writing="vertical"] .book-text .jisage_3,
+    [data-writing="vertical"] .book-text .jisage_5,
+    [data-writing="vertical"] .book-text .chitsuki_1 {
+      margin: 0 1.5rem 0 3rem !important;
+    }
+    [data-writing="vertical"] .book-text img {
+      max-width: min(24rem, 65vw);
+      max-height: 72%;
+      margin: auto 2rem;
+    }
 
     .sources { padding: 7rem max(1.2rem, calc((100% - 64rem) / 2)) 8rem; border-top: 1px solid var(--line); background: var(--paper-deep); }
     .sources h2 { max-width: 46rem; margin: 0.75rem 0 0; font-size: clamp(2rem, 5vw, 3rem); font-weight: 500; line-height: 1.35; }
@@ -1489,6 +1548,7 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
     <button type="button" data-action="larger" aria-label="文字を大きくする">A＋</button>
     <span class="tool-divider" aria-hidden="true"></span>
     <button class="active" type="button" data-action="ruby" aria-pressed="true" aria-label="ふりがなの表示を切り替える">る</button>
+    <button type="button" data-action="writing" aria-pressed="false" aria-label="縦書きと横書きを切り替える">横</button>
     <button type="button" data-action="theme" aria-label="明暗を切り替える">明暗</button>
   </div>
 
@@ -1506,12 +1566,30 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
       const root = document.documentElement;
       const article = document.querySelector(".book-text");
       const rubyButton = document.querySelector('[data-action="ruby"]');
+      const writingButton = document.querySelector('[data-action="writing"]');
       const themeButton = document.querySelector('[data-action="theme"]');
       const dialog = document.getElementById("toc-dialog");
       const progress = document.querySelector(".progress");
+      let currentChunk;
+      [...article.children].forEach((element) => {
+        if (!currentChunk || element.matches("h2, h3")) {
+          currentChunk = document.createElement("section");
+          currentChunk.className = "reading-chunk";
+          article.insertBefore(currentChunk, element);
+        }
+        currentChunk.append(element);
+      });
+      const readingChunks = [...article.querySelectorAll(".reading-chunk")];
       let fontSize = Number(localStorage.getItem("chimei-reading-size")) || 19;
       let showRuby = localStorage.getItem("chimei-show-ruby") !== "false";
       let theme = localStorage.getItem("chimei-theme") || "light";
+      let writing = localStorage.getItem("chimei-writing") || "horizontal";
+
+      const resetVerticalPages = () => {
+        readingChunks.forEach((chunk) => {
+          chunk.scrollLeft = 0;
+        });
+      };
 
       const applySettings = () => {
         article.style.setProperty("--reading-size", fontSize + "px");
@@ -1520,6 +1598,11 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
         rubyButton.setAttribute("aria-pressed", String(showRuby));
         root.dataset.theme = theme;
         themeButton.textContent = theme === "dark" ? "暗" : "明";
+        root.dataset.writing = writing;
+        const isVertical = writing === "vertical";
+        writingButton.textContent = isVertical ? "縦" : "横";
+        writingButton.classList.toggle("active", isVertical);
+        writingButton.setAttribute("aria-pressed", String(isVertical));
       };
 
       document.querySelector('[data-action="smaller"]').addEventListener("click", () => {
@@ -1542,6 +1625,19 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
         localStorage.setItem("chimei-theme", theme);
         applySettings();
       });
+      writingButton.addEventListener("click", () => {
+        writing = writing === "vertical" ? "horizontal" : "vertical";
+        localStorage.setItem("chimei-writing", writing);
+        applySettings();
+        if (writing === "vertical") {
+          requestAnimationFrame(() => {
+            resetVerticalPages();
+            updateProgress();
+          });
+        } else {
+          scrollTo({ top: article.offsetTop - 80, behavior: "smooth" });
+        }
+      });
 
       document.querySelector('[data-action="open-toc"]').addEventListener("click", () => dialog.showModal());
       document.querySelector('[data-action="close-toc"]').addEventListener("click", () => dialog.close());
@@ -1562,6 +1658,17 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
       };
       addEventListener("scroll", updateProgress, { passive: true });
       addEventListener("resize", updateProgress);
+      article.addEventListener("wheel", (event) => {
+        if (writing !== "vertical" || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+        const chunk = event.target.closest(".reading-chunk");
+        if (!chunk) return;
+        const max = chunk.scrollWidth - chunk.clientWidth;
+        const atLeft = chunk.scrollLeft <= -max + 1;
+        const atRight = chunk.scrollLeft >= -1;
+        if ((event.deltaY > 0 && atLeft) || (event.deltaY < 0 && atRight)) return;
+        event.preventDefault();
+        chunk.scrollLeft -= event.deltaY;
+      }, { passive: false });
 
       const sideLinks = [...document.querySelectorAll(".side-index a")];
       const observer = new IntersectionObserver((entries) => {
@@ -1570,9 +1677,15 @@ Yachi　ヤチ　　　A Swamp　沼沢<br />
           sideLinks.forEach((link) => link.classList.toggle("active", link.hash === "#" + entry.target.id));
         });
       }, { rootMargin: "-18% 0px -72%" });
-      document.querySelectorAll(".book-text > h2").forEach((heading) => observer.observe(heading));
+      document.querySelectorAll(".book-text h2").forEach((heading) => observer.observe(heading));
 
       applySettings();
+      if (writing === "vertical") {
+        requestAnimationFrame(() => {
+          resetVerticalPages();
+          updateProgress();
+        });
+      }
       updateProgress();
     })();
   </script>
