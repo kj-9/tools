@@ -14,6 +14,7 @@ The tool list is maintained on the published site.
 - [RSS Reader](https://kj-9.github.io/tools/rss-reader.html): Loads an RSS feed and displays articles in a browser UI.
 - [セルフ・コンパッション尺度（日本語版）](https://kj-9.github.io/tools/japanese-scs.html): A Japanese self-compassion scale questionnaire.
 - [方丈記 読み比べ](https://kj-9.github.io/tools/hojoki-reader.html): Reads Hojoki with the original text and Haruo Sato's modern Japanese translation.
+- [地名の研究](https://kj-9.github.io/tools/chimei-reader.html): A reader-friendly edition of Kunio Yanagita's study of Japanese place names.
 
 ## Scripts
 
